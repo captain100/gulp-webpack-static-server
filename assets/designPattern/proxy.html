@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>代理模式</title>
+</head>
+<body>
+<h2>
+    代理模式
+</h2>
+<pre>
+    代理模式：为一个对象提供一个代用品或占位符，以便控制对它的访问。
+    代理分为：保护代理和虚拟代理
+    保护代理：用于控制不同权限的对象对目标对象的访问，在JavaScript中很难判断谁访问了某个对象，所以保护代理很难实现。
+</pre>
+
+
+
+<script type="text/javascript">
+    var myImage = (function() {
+        var imgNode = document.createElement('img')
+        document.body.appendChild(imgNode)
+        var img = new Image()
+        img.onload = function() {
+            imgNode.src = img.src
+        }
+        return {
+            setSrc: function(src) {
+                imgNode.src = './images/loading.jpg'
+                img.src = src
+            }
+        }
+    })()
+
+    myImage.setSrc('./images/origin.jpg')
+
+    var myImage_1 = (function() {
+        var imgNode = document.createElement('img')
+        document.body.appendChild(imgNode)
+        return {
+            setSrc: function(src) {
+                imgNode.src = src
+            }
+        }
+    })()
+
+    var proxyImage = (function() {
+        var img = new Image()
+        img.onload = function(){
+            myImage_1.setSrc(this.src)
+        }
+        return {
+            setSrc: function(src){
+                myImage_1.setSrc('./images/shenfenzheng2.jpg')
+                img.src = src
+            }
+        }
+    })()
+    proxyImage.setSrc('./images/shengfenzheng.jpg')
+
+
+
+</script>
+</body>
+</html>

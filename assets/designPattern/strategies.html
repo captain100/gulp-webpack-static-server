@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>策略模式</title>
+</head>
+<body>
+    
+    <h2>定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。
+基于策略类模式的程序至少由两部分组成。第一个部分是一组策略类，策略类封装了具体的算法，并负责具体的计算过程。第二个部分是环境类Context，Context接收客户的请求，随后把请求委托给某一个策略类。</h2>
+    <code>
+        var strategies = {
+                'S': function(salary) {
+                    return salary * 4
+                },
+                'A': function(salary) {
+                    return salary * 3
+                },
+                'B': function(salary) {
+                    return salary * 2
+                }
+            }
+            var calculateBouns = function(level, salary) {
+                return strategies[level](salary)
+            }
+
+            console.log(calculateBouns('S', 2000))
+            console.log(calculateBouns('A', 2000))
+            console.log(calculateBouns('B', 2000))
+
+    </code>
+    <h2>
+        延伸：表单验证
+    </h2>
+    <label for="email">邮箱：</label><input type="text" name="email" value="1231231231231@sdfasdfasd">
+    <code>
+          var validateStrategies = {
+            isEmpty: function(val, errorMsg) {
+                if (!val) {
+                    return errorMsg;
+                }
+            },
+            isURL: function(val, errorMsg) {
+                if (!new RegExp('(http:\/\/|https:\/\/)')) {
+                    return errorMsg
+                }
+            },
+            isEmail: function(val, errorMsg) {
+                if (!/\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+/.test(val))
+                    return errorMsg
+            },
+            isMaxLength: function(val, length, errorMsg) {
+                if (val.length > length) {
+                    return errorMsg
+                }
+            },
+            isMinLength: function(val, length, errorMsg) {
+                if (val.length < length) {
+                    return errorMsg
+                }
+            }
+        }
+
+        var validate =  function(){
+            this.cache =[]
+        }
+
+        validate.prototype.add = function(dom, rules) {
+            var self = this
+            for(var i = 0, rule; rule = rules[i++]; ) {
+                (function (rule) {
+                    var strategyAry = rule.strategy.split(":");     // ["isMaxLength", "10"]
+                    var errorMsg = rule.errorMsg;                   // "内容长度不能超过10"
+                    self.cache.push(function () {
+                        var strategy = strategyAry.shift();         // "isMaxLength"
+                        strategyAry.unshift(dom.value);             // ["1@qq", "10"] "内容长度不能超过10"]
+                        return validateStrategies[strategy].apply(dom, strategyAry);
+                    });
+                })(rule);
+            }
+        }
+
+        /* 开始校验 */
+        validate.prototype.start = function () {
+            for (var i = 0, validateFunc; validateFunc = this.cache[i++];) {
+                var errorMsg = validateFunc();
+                if (errorMsg) {
+                    return errorMsg;
+                }
+            }
+        };
+
+        var validatorInstance = new validate();
+        validatorInstance.add(
+            document.getElementsByName("email")[0], 
+            [{
+                strategy: "isEmpty",
+                errorMsg: "内容不能为空"
+            },{
+                strategy: "isMaxLength:10",
+                errorMsg: "内容长度不能超过10"
+            },{
+                strategy: "isEmail",
+                errorMsg: "email格式不对"
+            }]);
+            console.log(validatorInstance.start())
+    </code>
+    <script type="text/javascript">
+        var strategies = {
+            'S': function(salary) {
+                return salary * 4
+            },
+            'A': function(salary) {
+                return salary * 3
+            },
+            'B': function(salary) {
+                return salary * 2
+            }
+        }
+        var calculateBouns = function(level, salary) {
+            return strategies[level](salary)
+        }
+
+        console.log(calculateBouns('S', 2000))
+        console.log(calculateBouns('A', 2000))
+        console.log(calculateBouns('B', 2000))
+
+        var validateStrategies = {
+            isEmpty: function(val, errorMsg) {
+                if (!val) {
+                    return errorMsg;
+                }
+            },
+            isURL: function(val, errorMsg) {
+                if (!new RegExp('(http:\/\/|https:\/\/)')) {
+                    return errorMsg
+                }
+            },
+            isEmail: function(val, errorMsg) {
+                if (!/\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+/.test(val))
+                    return errorMsg
+            },
+            isMaxLength: function(val, length, errorMsg) {
+                if (val.length > length) {
+                    return errorMsg
+                }
+            },
+            isMinLength: function(val, length, errorMsg) {
+                if (val.length < length) {
+                    return errorMsg
+                }
+            }
+        }
+
+        var validate =  function(){
+            this.cache =[]
+        }
+
+        validate.prototype.add = function(dom, rules) {
+            var self = this
+            for(var i = 0, rule; rule = rules[i++]; ) {
+                (function (rule) {
+                    var strategyAry = rule.strategy.split(":");     // ["isMaxLength", "10"]
+                    var errorMsg = rule.errorMsg;                   // "内容长度不能超过10"
+                    self.cache.push(function () {
+                        var strategy = strategyAry.shift();         // "isMaxLength"
+                        strategyAry.unshift(dom.value);             // ["1@qq", "10"]
+                        strategyAry.push(errorMsg);                 // ["1@qq", "10", "内容长度不能超过10"]
+                        return validateStrategies[strategy].apply(dom, strategyAry);
+                    });
+                })(rule);
+            }
+        }
+
+        /* 开始校验 */
+        validate.prototype.start = function () {
+            for (var i = 0, validateFunc; validateFunc = this.cache[i++];) {
+                var errorMsg = validateFunc();
+                if (errorMsg) {
+                    return errorMsg;
+                }
+            }
+        };
+
+        var validatorInstance = new validate();
+        validatorInstance.add(
+            document.getElementsByName("email")[0], 
+            [{
+                strategy: "isEmpty",
+                errorMsg: "内容不能为空"
+            },{
+                strategy: "isMaxLength:10",
+                errorMsg: "内容长度不能超过10"
+            },{
+                strategy: "isEmail",
+                errorMsg: "email格式不对"
+            }]);
+            console.log(validatorInstance.start())
+
+
+    </script>
+
+</body>
+</html>
